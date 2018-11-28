@@ -44,8 +44,24 @@ const NewestDreamRequestHandler = {
   }
 }
 
+const HelpHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.HelpIntent'
+  },
+  handle(handlerInput){
+    return handlerInput.responseBuilder
+      .speak(HELP_MESSAGE)
+      .reprompt(HELP_REPROMPT)
+      .getResponse()
+  }
+}
+
+const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
+const HELP_REPROMPT = 'ご用件はなんでしょうか？'
+
 const skillBuilder = Alexa.SkillBuilders.custom()
 
 exports.handler = skillBuilder
-  .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler)
+  .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler, HelpHandler)
   .lambda()
