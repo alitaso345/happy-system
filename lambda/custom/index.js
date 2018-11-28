@@ -14,10 +14,10 @@ const LaunchRequestHandler = {
   }
 }
 
-const DreamRequestHandler = {
+const NewestDreamRequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
-    return request.type === 'IntentRequest' && request.intent.name === 'DreamIntent'
+    return request.type === 'IntentRequest' && request.intent.name === 'NewestDreamIntent'
   },
   async handle(handlerInput) {
     const client = axios.create({
@@ -33,7 +33,7 @@ const DreamRequestHandler = {
       }
     }).then(res => {
       const json = JSON.parse(parser.toJson(res.data))
-      const latestEntry = json.feed.entry[1]
+      const latestEntry = json.feed.entry[0]
       const content = latestEntry.content["$t"]
       return content
     })
@@ -47,5 +47,5 @@ const DreamRequestHandler = {
 const skillBuilder = Alexa.SkillBuilders.custom()
 
 exports.handler = skillBuilder
-  .addRequestHandlers(LaunchRequestHandler, DreamRequestHandler)
+  .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler)
   .lambda()
