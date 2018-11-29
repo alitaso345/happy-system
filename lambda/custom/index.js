@@ -57,6 +57,20 @@ const HelpHandler = {
   }
 }
 
+const ErrorHandler = {
+  canHandle() {
+    return TextTrackCue
+  },
+  handle(handlerInput, error) {
+    console.log(`Error handled: ${error.message}`)
+
+    return handlerInput.responseBuilder
+      .speak('何を言っているのか理解できませんでした')
+      .reprompt('何を言っているのか理解できませんでした')
+      .getResponse();
+  }
+}
+
 const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
 const HELP_REPROMPT = 'ご用件はなんでしょうか？'
 
@@ -64,4 +78,5 @@ const skillBuilder = Alexa.SkillBuilders.custom()
 
 exports.handler = skillBuilder
   .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler, HelpHandler)
+  .addErrorHandlers(ErrorHandler)
   .lambda()
