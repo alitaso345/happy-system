@@ -68,6 +68,18 @@ const ExitHandler = {
       .getResponse()
   }
 }
+
+const SessionEndedRequestHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    return request.type === 'SessionEndedRequest'
+  },
+  handle(handlerInput) {
+    console.log(`The session ended: ${handlerInput.requestEnvelope.request.reason}`);
+    return handlerInput.responseBuilder.getResponse()
+  }
+}
+
 const ErrorHandler = {
   canHandle() {
     return TextTrackCue
@@ -89,6 +101,12 @@ const EXIT_MESSAGE = '<say-as interpret-as="interjection">おやすみなさい�
 const skillBuilder = Alexa.SkillBuilders.custom()
 
 exports.handler = skillBuilder
-  .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler, HelpHandler, ExitHandler)
+  .addRequestHandlers(
+    LaunchRequestHandler,
+    NewestDreamRequestHandler,
+    HelpHandler,
+    ExitHandler,
+    SessionEndedRequestHandler
+  )
   .addErrorHandlers(ErrorHandler)
   .lambda()
