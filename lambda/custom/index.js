@@ -46,7 +46,7 @@ const NewestDreamRequestHandler = {
 
 const HelpHandler = {
   canHandle(handlerInput) {
-    const request = handlerInput.requestEnvelope.request;
+    const request = handlerInput.requestEnvelope.request
     return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.HelpIntent'
   },
   handle(handlerInput){
@@ -57,6 +57,17 @@ const HelpHandler = {
   }
 }
 
+const ExitHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    return request.type === 'IntentRequest' && (request.intent.name === 'AMAZON.CancelIntent' || request.intent.name === 'AMAZON.StopIntent')
+  },
+  handle(handlerInput) {
+    return handlerInput.responseBuilder
+      .speak(EXIT_MESSAGE)
+      .getResponse()
+  }
+}
 const ErrorHandler = {
   canHandle() {
     return TextTrackCue
@@ -73,10 +84,11 @@ const ErrorHandler = {
 
 const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
 const HELP_REPROMPT = 'ご用件はなんでしょうか？'
+const EXIT_MESSAGE = '<say-as interpret-as="interjection">おやすみなさい。良い夢を。</say-as>'
 
 const skillBuilder = Alexa.SkillBuilders.custom()
 
 exports.handler = skillBuilder
-  .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler, HelpHandler)
+  .addRequestHandlers(LaunchRequestHandler, NewestDreamRequestHandler, HelpHandler, ExitHandler)
   .addErrorHandlers(ErrorHandler)
   .lambda()
