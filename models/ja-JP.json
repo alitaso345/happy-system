@@ -1,0 +1,37 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "夢日記",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "NewestDreamIntent",
+          "slots": [],
+          "samples": [
+            "今朝の夢日記をきかせて",
+            "最近の夢日記をおしえて",
+            "直近の夢日記をおしえて",
+            "最新の夢日記をおしえて",
+            "新しい夢日記をおしえて"
+          ]
+        }
+      ],
+      "types": []
+    }
+  }
+}
