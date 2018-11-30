@@ -66,7 +66,7 @@ const SessionEndedRequestHandler = {
 
 const ErrorHandler = {
   canHandle() {
-    return TextTrackCue
+    return true
   },
   handle(handlerInput, error) {
     console.log(`Error handled: ${error.message}`)
