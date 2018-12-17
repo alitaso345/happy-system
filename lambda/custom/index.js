@@ -9,8 +9,31 @@ const LaunchRequestHandler = {
   },
   async handle(handlerInput) {
     const newestEntry = await getNewestEntry()
+    const datasources = buildDataSources(newestEntry)
+    const document = buildAplDocument()
+
+    if (!supportDisplay(handlerInput)) {
+      return handlerInput.responseBuilder
+        .speak(newestEntry)
+        .getResponse()
+    }
+
     return handlerInput.responseBuilder
-      .speak(newestEntry)
+      .addDirective({
+        type: 'Alexa.Presentation.APL.RenderDocument',
+        token: 'happy',
+        document: document,
+        datasources: datasources
+      })
+      .addDirective({
+        type: 'Alexa.Presentation.APL.ExecuteCommands',
+        token: 'happy',
+        commands: [{
+          type: 'SpeakItem',
+          componentId: 'dreamTextComponent'
+        }]
+      })
+      .withShouldEndSession(true)
       .getResponse()
   }
 }
@@ -22,8 +45,31 @@ const NewestDreamRequestHandler = {
   },
   async handle(handlerInput) {
     const newestEntry = await getNewestEntry()
+    const datasources = buildDataSources(newestEntry)
+    const document = buildAplDocument()
+
+    if (!supportDisplay(handlerInput)) {
+      return handlerInput.responseBuilder
+        .speak(newestEntry)
+        .getResponse()
+    }
+
     return handlerInput.responseBuilder
-      .speak(newestEntry)
+      .addDirective({
+        type: 'Alexa.Presentation.APL.RenderDocument',
+        token: 'system',
+        document: document,
+        datasources: datasources
+      })
+      .addDirective({
+        type: 'Alexa.Presentation.APL.ExecuteCommands',
+        token: 'system',
+        commands: [{
+          type: 'SpeakItem',
+          componentId: 'dreamTextComponent'
+        }]
+      })
+      .withShouldEndSession(true)
       .getResponse()
   }
 }
@@ -60,13 +106,14 @@ const SessionEndedRequestHandler = {
   },
   handle(handlerInput) {
     console.log(`The session ended: ${handlerInput.requestEnvelope.request.reason}`);
+    console.log(`${JSON.stringify(handlerInput)}`)
     return handlerInput.responseBuilder.getResponse()
   }
 }
 
 const ErrorHandler = {
   canHandle() {
-    return TextTrackCue
+    return true
   },
   handle(handlerInput, error) {
     console.log(`Error handled: ${error.message}`)
@@ -115,4 +162,114 @@ async function getNewestEntry() {
   })
 
   return content
+}
+
+function buildAplDocument() {
+  const document = {
+    type: "APL",
+    version: "1.0",
+    theme: "dark",
+    import: {
+      name: "alexa-layouts",
+      version: "1.0.0"
+    },
+    resources: [],
+    styles: [],
+    mainTemplate: {
+      parameters: [
+        "payload"
+      ],
+      items: [
+        {
+          when: "${viewport.shape == 'round'}",
+          type: "Container",
+          direction: "column",
+          width: "100vw",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          items: [
+            {
+              type: "ScrollView",
+              width: "70vw",
+              height: "70vh",
+              item: {
+                type: "Text",
+                id: "dreamTextComponent",
+                text: "${payload.data.properties.dreamContent}",
+                speech: "${payload.data.properties.dreamContentSpeech}"
+              }
+            }
+          ]
+        },
+        {
+          when: "${viewport.shape == 'rectangle'}",
+          type: "Container",
+          direction: "column",
+          width: "100vw",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          items: [
+            {
+              type: "ScrollView",
+              width: "100vw",
+              height: "100vh",
+              item: {
+                type: "Text",
+                id: "dreamTextComponent",
+                text: "${payload.data.properties.dreamContent}",
+                speech: "${payload.data.properties.dreamContentSpeech}"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  return document
+}
+
+function buildDataSources(entry) {
+  const datasources = {
+    data: {
+      type: "object",
+      objectId: "happy-system",
+      title: "みんな幸せみんなハッピーシステム",
+      entry: "",
+      properties: {},
+      transformers: []
+    }
+  }
+
+  const inputPath = 'dreamSsml'
+  datasources.data.entry = entry
+  datasources.data.properties[inputPath] = `<speak>${entry}</speak>`
+  datasources.data.transformers.push(
+    {
+      inputPath: inputPath,
+      outputName: 'dreamContentSpeech',
+      transformer: 'ssmlToSpeech'
+    },
+    {
+      inputPath: inputPath,
+      outputName: 'dreamContent',
+      transformer: 'ssmlToText'
+    }
+  )
+
+  return datasources
+}
+
+function supportDisplay(handlerInput) {
+  const hasDisplay =
+    handlerInput.requestEnvelope &&
+    handlerInput.requestEnvelope.context &&
+    handlerInput.requestEnvelope.context.System &&
+    handlerInput.requestEnvelope.context.System.device &&
+    handlerInput.requestEnvelope.context.System.device.supportedInterfaces &&
+    handlerInput.requestEnvelope.context.System.device.supportedInterfaces.Display
+
+  return hasDisplay
 }
