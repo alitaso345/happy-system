@@ -1,12 +1,13 @@
 const axios = require('axios')
 const parser = require('xml2json')
+const fs = require('fs')
 
 async function main() {
-  const diaryContents = await exportDiaryFromBlog()
-  console.log(diaryContents)
+  const diaryContents = await exportContentsFromBlog()
+  console.log(JSON.stringify(diaryContents, '', ' '))
 }
 
-async function exportDiaryFromBlog() {
+async function exportContentsFromBlog() {
   let client = axios.create({ baseURL: 'https://blog.hatena.ne.jp/alice345/alitaso345.hatenadiary.jp/atom/entry' })
   let result = []
   let data = await getData(client)
