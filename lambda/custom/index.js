@@ -12,6 +12,11 @@ const LaunchRequestHandler = {
     const datasources = buildDataSources(newestEntry)
     const document = buildAplDocument()
 
+    if (!supportDisplay(handlerInput)) {
+      return handlerInput.responseBuilder
+        .speak(newestEntry)
+        .getResponse()
+    }
 
     return handlerInput.responseBuilder
       .addDirective({
@@ -40,8 +45,31 @@ const NewestDreamRequestHandler = {
   },
   async handle(handlerInput) {
     const newestEntry = await getNewestEntry()
+    const datasources = buildDataSources(newestEntry)
+    const document = buildAplDocument()
+
+    if (!supportDisplay(handlerInput)) {
+      return handlerInput.responseBuilder
+        .speak(newestEntry)
+        .getResponse()
+    }
+
     return handlerInput.responseBuilder
-      .speak(newestEntry)
+      .addDirective({
+        type: 'Alexa.Presentation.APL.RenderDocument',
+        token: 'system',
+        document: document,
+        datasources: datasources
+      })
+      .addDirective({
+        type: 'Alexa.Presentation.APL.ExecuteCommands',
+        token: 'system',
+        commands: [{
+          type: 'SpeakItem',
+          componentId: 'dreamTextComponent'
+        }]
+      })
+      .withShouldEndSession(true)
       .getResponse()
   }
 }
@@ -163,8 +191,8 @@ function buildAplDocument() {
           items: [
             {
               type: "ScrollView",
-              width: "80vw",
-              height: "80vh",
+              width: "70vw",
+              height: "70vh",
               item: {
                 type: "Text",
                 id: "dreamTextComponent",
@@ -232,4 +260,16 @@ function buildDataSources(entry) {
   )
 
   return datasources
+}
+
+function supportDisplay(handlerInput) {
+  const hasDisplay =
+    handlerInput.requestEnvelope &&
+    handlerInput.requestEnvelope.context &&
+    handlerInput.requestEnvelope.context.System &&
+    handlerInput.requestEnvelope.context.System.device &&
+    handlerInput.requestEnvelope.context.System.device.supportedInterfaces &&
+    handlerInput.requestEnvelope.context.System.device.supportedInterfaces.Display
+
+  return hasDisplay
 }
