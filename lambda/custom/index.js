@@ -1,4 +1,5 @@
 const Alexa = require('ask-sdk-core')
+const AWS = require('aws-sdk')
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -140,8 +141,33 @@ exports.handler = skillBuilder
   .addErrorHandlers(ErrorHandler)
   .lambda()
 
-async function getNewestEntry() {
-  return "test"
+function getNewestEntry() {
+  const docClient = new AWS.DynamoDB.DocumentClient({ region: 'ap-northeast-1' })
+
+  const params = {
+    TableName: 'Entries',
+    ExpressionAttributeNames: {
+      '#t': 'type',
+      '#p': 'publishedAt'
+    },
+    ExpressionAttributeValues: {
+      ':t': 'Dream',
+      ':p': '2017-09-05T0:00:00.000Z'
+    },
+    KeyConditionExpression: '#t = :t and #p > :p',
+    Limit: 1,
+    ScanIndexForward: false
+  }
+
+  return new Promise(resolve => {
+    docClient.query(params, (err, data) => {
+      if (err) {
+        console.log("ERROR:", JSON.stringify(data))
+      } else {
+        resolve(data.Items[0].content)
+      }
+    })
+  })
 }
 
 function buildAplDocument() {
