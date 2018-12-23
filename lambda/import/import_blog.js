@@ -1,6 +1,5 @@
 const axios = require('axios')
 const parser = require('xml2json')
-const fs = require('fs')
 
 async function main() {
   const diaryContents = await exportContentsFromBlog()
@@ -31,7 +30,13 @@ async function getData(client) {
   }).then(res => {
     const data = new Object()
     const json = JSON.parse(parser.toJson(res.data))
-    data.contents = json.feed.entry.map(el => el.content["$t"])
+    data.contents = json.feed.entry.map(el => {
+      const obj = {}
+      obj.title = el.title
+      obj.content = el.content["$t"]
+      obj.createdAt = new Date(el.published)
+      return obj
+    })
     data.next_url = json.feed.link[1].href
     return data
   })
