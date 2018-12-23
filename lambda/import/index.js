@@ -3,30 +3,6 @@ const axios = require('axios')
 const parser = require('xml2json')
 const TABLE_NAME = 'Entries'
 
-async function main() {
-  const docClient = new AWS.DynamoDB.DocumentClient()
-  const diaryContents = await exportContentsFromBlog()
-  diaryContents.forEach(content => {
-    const params = {
-      TableName: TABLE_NAME,
-      Item: {
-        "DreamType": content.dreamType,
-        "PublishedAt": content.publishedAt.toString(),
-        "Title": content.title,
-        "Content": content.content
-      }
-    }
-
-    docClient.put(params, (err, data) => {
-      if (err) {
-        console.error("ERROR: ", JSON.stringify(err, null, 2))
-      } else {
-        console.log("Added Item:", JSON.stringify(data, null, 2))
-      }
-    })
-  })
-}
-
 async function exportContentsFromBlog() {
   let client = axios.create({ baseURL: 'https://blog.hatena.ne.jp/alice345/alitaso345.hatenadiary.jp/atom/entry' })
   let result = []
@@ -69,4 +45,26 @@ AWS.config.update({
   region: 'ap-northeast-1'
 })
 
-main()
+exports.handler = async () => {
+  const docClient = new AWS.DynamoDB.DocumentClient()
+  const diaryContents = await exportContentsFromBlog()
+  diaryContents.forEach(content => {
+    const params = {
+      TableName: TABLE_NAME,
+      Item: {
+        "DreamType": content.dreamType,
+        "PublishedAt": content.publishedAt.toString(),
+        "Title": content.title,
+        "Content": content.content
+      }
+    }
+
+    docClient.put(params, (err, data) => {
+      if (err) {
+        console.error("ERROR: ", JSON.stringify(err, null, 2))
+      } else {
+        console.log("Added Item:", JSON.stringify(data, null, 2))
+      }
+    })
+  })
+}
