@@ -1,9 +1,30 @@
+const AWS = require('aws-sdk')
 const axios = require('axios')
 const parser = require('xml2json')
+const TABLE_NAME = 'Entries'
 
 async function main() {
+  const docClient = new AWS.DynamoDB.DocumentClient()
   const diaryContents = await exportContentsFromBlog()
-  console.log(JSON.stringify(diaryContents, '', ' '))
+  diaryContents.forEach(content => {
+    const params = {
+      TableName: TABLE_NAME,
+      Item: {
+        "DreamType": content.dreamType,
+        "PublishedAt": content.publishedAt.toString(),
+        "Title": content.title,
+        "Content": content.content
+      }
+    }
+
+    docClient.put(params, (err, data) => {
+      if (err) {
+        console.error("ERROR: ", JSON.stringify(err, null, 2))
+      } else {
+        console.log("Added Item:", JSON.stringify(data, null, 2))
+      }
+    })
+  })
 }
 
 async function exportContentsFromBlog() {
@@ -32,9 +53,10 @@ async function getData(client) {
     const json = JSON.parse(parser.toJson(res.data))
     data.contents = json.feed.entry.map(el => {
       const obj = {}
+      obj.dreamType = /明晰夢/.exec(el.title) === null ? 'Normal' : 'lucid'
       obj.title = el.title
       obj.content = el.content["$t"]
-      obj.createdAt = new Date(el.published)
+      obj.publishedAt = new Date(el.published)
       return obj
     })
     data.next_url = json.feed.link[1].href
@@ -42,5 +64,9 @@ async function getData(client) {
   })
   return response
 }
+
+AWS.config.update({
+  region: 'ap-northeast-1'
+})
 
 main()
