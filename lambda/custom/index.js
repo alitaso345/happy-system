@@ -1,6 +1,4 @@
 const Alexa = require('ask-sdk-core')
-const axios = require('axios')
-const parser = require('xml2json')
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -143,25 +141,7 @@ exports.handler = skillBuilder
   .lambda()
 
 async function getNewestEntry() {
-  const client = axios.create({
-    baseURL: 'https://blog.hatena.ne.jp/alice345/alitaso345.hatenadiary.jp/atom'
-  })
-
-  const content = await client.request({
-    method: 'get',
-    url: '/entry',
-    auth: {
-      username: process.env['HATENA_ID'],
-      password: process.env['HATENA_API_KEY']
-    }
-  }).then(res => {
-    const json = JSON.parse(parser.toJson(res.data))
-    const latestEntry = json.feed.entry[0]
-    const content = latestEntry.content["$t"]
-    return content
-  })
-
-  return content
+  return "test"
 }
 
 function buildAplDocument() {
