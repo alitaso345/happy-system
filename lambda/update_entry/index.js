@@ -15,7 +15,7 @@ async function getNewestEntries() {
     const json = JSON.parse(parser.toJson(res.data))
     entries = json.feed.entry.map(el => {
       const obj = {}
-      obj.dreamType = /明晰夢/.exec(el.title) === null ? 'Normal' : 'lucid'
+      obj.dreamType = 'Dream'
       obj.title = el.title
       obj.content = el.content["$t"]
       obj.publishedAt = new Date(el.published)
@@ -39,10 +39,10 @@ exports.handler = async () => {
     const params = {
       TableName: TABLE_NAME,
       Item: {
-        "DreamType": content.dreamType,
-        "PublishedAt": content.publishedAt.toString(),
-        "Title": content.title,
-        "Content": content.content
+        "type": content.type,
+        "publishedAt": content.publishedAt.toISOString(),
+        "title": content.title,
+        "content": content.content.replace(/\r?\n/g, '')
       }
     }
 
