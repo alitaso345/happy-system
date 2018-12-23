@@ -1,0 +1,16 @@
+{
+  "name": "import",
+  "version": "1.0.0",
+  "description": "",
+  "main": "import_blog.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.382.0",
+    "axios": "^0.18.0",
+    "xml2json": "^0.11.2"
+  }
+}

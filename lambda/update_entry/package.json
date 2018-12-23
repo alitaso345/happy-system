@@ -1,0 +1,16 @@
+{
+  "name": "update_entry",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "alitaso345",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.382.0",
+    "axios": "^0.18.0",
+    "xml2json": "^0.11.2"
+  }
+}
