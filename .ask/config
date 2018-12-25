@@ -1,0 +1,33 @@
+{
+  "deploy_settings": {
+    "default": {
+      "skill_id": "amzn1.ask.skill.a2cf3ed6-7568-4c48-a088-7d03aa23a94f",
+      "was_cloned": false,
+      "merge": {},
+      "resources": {
+        "manifest": {
+          "eTag": "75def3797b2630b7a572cd5b640cd1d2"
+        },
+        "interactionModel": {
+          "ja-JP": {
+            "eTag": "3054b3f91c6a194d9306ddd6f877beae"
+          }
+        },
+        "lambda": [
+          {
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "arn": "arn:aws:lambda:ap-northeast-1:952846470417:function:yumenikki2",
+            "awsRegion": "ap-northeast-1",
+            "codeUri": "lambda/custom",
+            "functionName": "yumenikki2",
+            "handler": "index.handler",
+            "revisionId": "f7fbfe7f-59af-4d3a-9cb4-19eb435abdbd",
+            "runtime": "nodejs8.10"
+          }
+        ]
+      }
+    }
+  }
+}
