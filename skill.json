@@ -1,0 +1,56 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "ja-JP": {
+          "summary": "夢日記ブログ「みんな幸せみんなハッピーシステム」の夢日記の内容を教えてくれるスキルです",
+          "examplePhrases": [
+            "アレクサ、夢日記を開いて",
+            "アレクサ、夢日記を起動して",
+            "アレクサ、夢日記を開いて、最新の夢日記をおしえて"
+          ],
+          "keywords": [
+            "夢日記",
+            "夢",
+            "日記"
+          ],
+          "name": "夢日記",
+          "smallIconUri": "https://s3.amazonaws.com/CAPS-SSE/echo_developer/e3b4/791ea64eb3734ceaa23ac73e14c1e571/APP_ICON?versionId=OT2IfX_PiQvMWqecTwNPDMvmucRy5qY_&AWSAccessKeyId=AKIAJFEYRBGIHK2BBYKA&Expires=1545827206&Signature=9gP1HOQietTg8AvrY0XrYLAmFOA%3D",
+          "description": "夢日記の再生スキル。日本最大級の夢日記ブログ「みんな幸せみんなハッピーシステム」の内容を再生します。",
+          "largeIconUri": "https://s3.amazonaws.com/CAPS-SSE/echo_developer/9cf6/c25c4d1272014fd2a2a0c016de9cfd76/APP_ICON_LARGE?versionId=1286Qhj3NaDNtVkw5OwNYK9H5UAnAkci&AWSAccessKeyId=AKIAJFEYRBGIHK2BBYKA&Expires=1545827206&Signature=GLXKvnStgu2YMj07cnolFLTcse0%3D"
+        }
+      },
+      "isAvailableWorldwide": false,
+      "testingInstructions": "アレクサ、夢日記を起動して\nアレクサ、夢日記を開いて、最新の夢日記をおしえて\n\nというと、夢日記ブログ( http://alitaso345.hatenadiary.jp/ ) の最新エントリーが取得できます",
+      "category": "SELF_IMPROVEMENT",
+      "distributionCountries": [
+        "JP"
+      ]
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "yumenikki2",
+          "sourceDir": "lambda/custom"
+        },
+        "interfaces": [
+          {
+            "type": "RENDER_TEMPLATE",
+            "minimumTemplateVersion": "1.0"
+          },
+          {
+            "type": "ALEXA_PRESENTATION_APL"
+          }
+        ]
+      }
+    },
+    "manifestVersion": "1.0",
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "isChildDirected": false,
+      "usesPersonalInfo": false
+    }
+  }
+}
