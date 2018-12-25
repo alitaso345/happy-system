@@ -69,6 +69,18 @@
         {
           "name": "AMAZON.ScrollUpIntent",
           "samples": []
+        },
+        {
+          "name": "RepeatIntent",
+          "slots": [],
+          "samples": [
+            "無限におしえて",
+            "続けて読み上げて",
+            "連続でおしえて",
+            "永遠に流して",
+            "リピートして",
+            "無限に繰り返して"
+          ]
         }
       ],
       "types": []
