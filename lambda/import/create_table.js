@@ -8,12 +8,12 @@ const dynamodb = new AWS.DynamoDB()
 const params = {
   TableName: 'Entries',
   KeySchema: [
-    { AttributeName: 'DreamType', KeyType: 'HASH' }, //Partition key
-    { AttributeName: 'PublishedAt', KeyType: 'RANGE' } //Sort key
+    { AttributeName: 'type', KeyType: 'HASH' }, //Partition key
+    { AttributeName: 'publishedAt', KeyType: 'RANGE' } //Sort key
   ],
   AttributeDefinitions: [
-    { AttributeName: 'DreamType', AttributeType: 'S' },
-    { AttributeName: 'PublishedAt', AttributeType: 'S' }
+    { AttributeName: 'type', AttributeType: 'S' },
+    { AttributeName: 'publishedAt', AttributeType: 'S' }
   ],
   ProvisionedThroughput: {
     ReadCapacityUnits: 10,

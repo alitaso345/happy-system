@@ -1,6 +1,5 @@
 const Alexa = require('ask-sdk-core')
-const axios = require('axios')
-const parser = require('xml2json')
+const AWS = require('aws-sdk')
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -142,26 +141,33 @@ exports.handler = skillBuilder
   .addErrorHandlers(ErrorHandler)
   .lambda()
 
-async function getNewestEntry() {
-  const client = axios.create({
-    baseURL: 'https://blog.hatena.ne.jp/alice345/alitaso345.hatenadiary.jp/atom'
-  })
+function getNewestEntry() {
+  const docClient = new AWS.DynamoDB.DocumentClient({ region: 'ap-northeast-1' })
 
-  const content = await client.request({
-    method: 'get',
-    url: '/entry',
-    auth: {
-      username: process.env['HATENA_ID'],
-      password: process.env['HATENA_API_KEY']
-    }
-  }).then(res => {
-    const json = JSON.parse(parser.toJson(res.data))
-    const latestEntry = json.feed.entry[0]
-    const content = latestEntry.content["$t"]
-    return content
-  })
+  const params = {
+    TableName: 'Entries',
+    ExpressionAttributeNames: {
+      '#t': 'type',
+      '#p': 'publishedAt'
+    },
+    ExpressionAttributeValues: {
+      ':t': 'Dream',
+      ':p': '2017-09-05T0:00:00.000Z'
+    },
+    KeyConditionExpression: '#t = :t and #p > :p',
+    Limit: 1,
+    ScanIndexForward: false
+  }
 
-  return content
+  return new Promise(resolve => {
+    docClient.query(params, (err, data) => {
+      if (err) {
+        console.log("ERROR:", JSON.stringify(data))
+      } else {
+        resolve(data.Items[0].content)
+      }
+    })
+  })
 }
 
 function buildAplDocument() {

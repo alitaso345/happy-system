@@ -27,12 +27,15 @@ async function getData(client) {
   }).then(res => {
     const data = new Object()
     const json = JSON.parse(parser.toJson(res.data))
-    data.contents = json.feed.entry.map(el => {
+
+    // たまたま1件だけのページだとオブジェクトで返ってくる
+    const entries = Array.isArray(json.feed.entry) === true ? json.feed.entry : Array(json.feed.entry)
+    data.contents = entries.map(el => {
       const obj = {}
-      obj.dreamType = /明晰夢/.exec(el.title) === null ? 'Normal' : 'lucid'
+      obj.type = 'Dream'
       obj.title = el.title
-      obj.content = el.content["$t"]
-      obj.publishedAt = new Date(el.published)
+      obj.content = el.content["$t"].replace(/\r?\n/g, '')
+      obj.publishedAt = new Date(el.published).toISOString()
       return obj
     })
     data.next_url = json.feed.link[1].href
@@ -52,10 +55,10 @@ exports.handler = async () => {
     const params = {
       TableName: TABLE_NAME,
       Item: {
-        "DreamType": content.dreamType,
-        "PublishedAt": content.publishedAt.toString(),
-        "Title": content.title,
-        "Content": content.content
+        "type": content.type,
+        "publishedAt": content.publishedAt,
+        "title": content.title,
+        "content": content.content
       }
     }
 
