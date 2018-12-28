@@ -1,10 +1,11 @@
 import * as AWS from 'aws-sdk'
+import * as Alexa from 'ask-sdk-core'
 
 const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
 const HELP_REPROMPT = 'ご用件はなんでしょうか？'
 const EXIT_MESSAGE = '<say-as interpret-as="interjection">おやすみなさい。良い夢を。</say-as>'
 
-export const LaunchRequestHandler = {
+export const LaunchRequestHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
     return request.type === 'LaunchRequest'
@@ -40,7 +41,7 @@ export const LaunchRequestHandler = {
   }
 }
 
-export const NewestDreamRequestHandler = {
+export const NewestDreamRequestHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
     return request.type === 'IntentRequest' && request.intent.name === 'NewestDreamIntent'
@@ -76,7 +77,7 @@ export const NewestDreamRequestHandler = {
   }
 }
 
-export const HelpHandler = {
+export const HelpHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
     return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.HelpIntent'
@@ -89,7 +90,7 @@ export const HelpHandler = {
   }
 }
 
-export const ExitHandler = {
+export const ExitHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
     return request.type === 'IntentRequest' && (request.intent.name === 'AMAZON.CancelIntent' || request.intent.name === 'AMAZON.StopIntent')
@@ -101,19 +102,19 @@ export const ExitHandler = {
   }
 }
 
-export const SessionEndedRequestHandler = {
+export const SessionEndedRequestHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
     return request.type === 'SessionEndedRequest'
   },
   handle(handlerInput) {
-    console.log(`The session ended: ${handlerInput.requestEnvelope.request.reason}`);
+    console.log('The session ended');
     console.log(`${JSON.stringify(handlerInput)}`)
     return handlerInput.responseBuilder.getResponse()
   }
 }
 
-export const ErrorHandler = {
+export const ErrorHandler: Alexa.ErrorHandler = {
   canHandle() {
     return true
   },
@@ -127,7 +128,7 @@ export const ErrorHandler = {
   }
 }
 
-const getNewestEntry = () => {
+const getNewestEntry = (): Promise<string> => {
   const docClient = new AWS.DynamoDB.DocumentClient({ region: 'ap-northeast-1' })
 
   const params = {
