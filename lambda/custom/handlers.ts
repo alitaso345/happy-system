@@ -127,7 +127,7 @@ export const ErrorHandler = {
   }
 }
 
-function getNewestEntry() {
+const getNewestEntry = () => {
   const docClient = new AWS.DynamoDB.DocumentClient({ region: 'ap-northeast-1' })
 
   const params = {
@@ -156,7 +156,7 @@ function getNewestEntry() {
   })
 }
 
-function buildAplDocument() {
+const buildAplDocument = () =>{
   const document = {
     type: "APL",
     version: "1.0",
@@ -223,7 +223,7 @@ function buildAplDocument() {
   return document
 }
 
-function buildDataSources(entry) {
+const buildDataSources = (entry) => {
   const datasources = {
     data: {
       type: "object",
@@ -254,7 +254,7 @@ function buildDataSources(entry) {
   return datasources
 }
 
-function supportDisplay(handlerInput) {
+const supportDisplay = (handlerInput) => {
   const hasDisplay =
     handlerInput.requestEnvelope &&
     handlerInput.requestEnvelope.context &&
