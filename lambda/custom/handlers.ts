@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk'
 import * as Alexa from 'ask-sdk-core'
+import { interfaces } from 'ask-sdk-model';
 
 const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
 const HELP_REPROMPT = 'ご用件はなんでしょうか？'
@@ -14,6 +15,10 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
     const newestEntry = await getNewestEntry()
     const datasources = buildDataSources(newestEntry)
     const document = buildAplDocument()
+    const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
+      type: 'SpeakItem',
+      componentId: 'dreamTextComponent'
+    }
 
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
@@ -31,10 +36,7 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
       .addDirective({
         type: 'Alexa.Presentation.APL.ExecuteCommands',
         token: 'happy',
-        commands: [{
-          type: 'SpeakItem',
-          componentId: 'dreamTextComponent'
-        }]
+        commands: [command]
       })
       .withShouldEndSession(true)
       .getResponse()
@@ -224,12 +226,30 @@ const buildAplDocument = () =>{
   return document
 }
 
-const buildDataSources = (entry) => {
-  const datasources = {
+interface IDatasourceWraper {
+  data: IDatasource
+}
+
+interface IDatasource {
+  type: string // "object"である必要がある https://developer.amazon.com/ja/docs/alexa-presentation-language/apl-data-source.html#object-type-data-sources
+  properties?: object
+  entry?: string
+  objectId?: string
+  description?: string
+  transformers?: ITransformer[]
+}
+
+interface ITransformer {
+  inputPath: string
+  outputName?: string
+  transformer: string
+}
+
+const buildDataSources = (entry: string): IDatasourceWraper => {
+  const datasources: IDatasourceWraper = {
     data: {
       type: "object",
       objectId: "happy-system",
-      title: "みんな幸せみんなハッピーシステム",
       entry: "",
       properties: {},
       transformers: []
@@ -255,7 +275,7 @@ const buildDataSources = (entry) => {
   return datasources
 }
 
-const supportDisplay = (handlerInput) => {
+const supportDisplay = (handlerInput: Alexa.HandlerInput): interfaces.display.DisplayInterface => {
   const hasDisplay =
     handlerInput.requestEnvelope &&
     handlerInput.requestEnvelope.context &&
