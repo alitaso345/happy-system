@@ -52,6 +52,10 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
     const newestEntry = await getNewestEntry()
     const datasources = buildDataSources(newestEntry)
     const document = buildAplDocument()
+    const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
+      type: 'SpeakItem',
+      componentId: 'dreamTextComponent'
+    }
 
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
@@ -69,10 +73,7 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
       .addDirective({
         type: 'Alexa.Presentation.APL.ExecuteCommands',
         token: 'system',
-        commands: [{
-          type: 'SpeakItem',
-          componentId: 'dreamTextComponent'
-        }]
+        commands: [command]
       })
       .withShouldEndSession(true)
       .getResponse()
@@ -159,7 +160,21 @@ const getNewestEntry = (): Promise<string> => {
   })
 }
 
-const buildAplDocument = () =>{
+interface IDocument {
+  description?: string
+  import?: object
+  mainTemplate: ILayout
+  type: string
+  version: string
+}
+
+interface ILayout {
+  parameters: string[]
+  items: object[]
+  description?: string
+}
+
+const buildAplDocument = (): IDocument => {
   const document = {
     type: "APL",
     version: "1.0",
