@@ -1,5 +1,5 @@
-const Alexa = require('ask-sdk-core')
-const AWS = require('aws-sdk')
+import * as Alexa from 'ask-sdk-core'
+import * as AWS from 'aws-sdk'
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -130,7 +130,7 @@ const EXIT_MESSAGE = '<say-as interpret-as="interjection">おやすみなさい�
 
 const skillBuilder = Alexa.SkillBuilders.custom()
 
-exports.handler = skillBuilder
+export const handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
     NewestDreamRequestHandler,
