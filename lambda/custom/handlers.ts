@@ -286,15 +286,26 @@ const buildAplDocument = (): IDocument => {
           justifyContent: "center",
           items: [
             {
-              type: "ScrollView",
-              width: "70vw",
-              height: "70vh",
-              item: {
-                type: "Text",
-                id: "dreamTextComponent",
-                text: "${payload.data.properties.dreamContent}",
-                speech: "${payload.data.properties.dreamContentSpeech}"
-              }
+              "type": "Pager",
+              "id": "EntryPager",
+              "width": "70vw",
+              "height": "70vh",
+              "data": "${payload.data.properties.entries}",
+              "item": [
+                {
+                  "type": "Container",
+                  "width": "100vw",
+                  "height": "100vh",
+                  "item": [
+                    {
+                      "type": "Text",
+                      "id": "${data.publishedAt}",
+                      "text": "${data.content}",
+                      "speech": "${data.speech}"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
