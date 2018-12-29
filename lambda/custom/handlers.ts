@@ -293,7 +293,6 @@ interface IDatasourceWraper {
 interface IDatasource {
   type: string // "object"である必要がある https://developer.amazon.com/ja/docs/alexa-presentation-language/apl-data-source.html#object-type-data-sources
   properties?: object
-  entry?: string
   objectId?: string
   description?: string
   transformers?: ITransformer[]
@@ -310,7 +309,6 @@ const buildDataSources = (entries: IEntry[]): IDatasourceWraper => {
     data: {
       type: "object",
       objectId: "happy-system",
-      entry: "",
       properties: {},
       transformers: []
     }
@@ -318,7 +316,6 @@ const buildDataSources = (entries: IEntry[]): IDatasourceWraper => {
 
   const inputPath = 'dreamSsml'
   const entryesPackage = ''.concat(...entries.map(el => el.content))
-  datasources.data.entry = entryesPackage
   datasources.data.properties[inputPath] = `<speak>${entryesPackage}</speak>`
   datasources.data.transformers.push(
     {
