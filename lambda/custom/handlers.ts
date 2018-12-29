@@ -14,7 +14,7 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
   },
   async handle(handlerInput) {
     const newestEntry = await getNewestEntry()
-    const datasources = buildDataSources(newestEntry)
+    const datasources = buildDataSources([newestEntry])
     const document = buildAplDocument()
     const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
       type: 'SpeakItem',
@@ -23,7 +23,7 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
 
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
-        .speak(newestEntry)
+        .speak(newestEntry.content)
         .getResponse()
     }
 
@@ -51,7 +51,7 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
   },
   async handle(handlerInput) {
     const newestEntry = await getNewestEntry()
-    const datasources = buildDataSources(newestEntry)
+    const datasources = buildDataSources([newestEntry])
     const document = buildAplDocument()
     const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
       type: 'SpeakItem',
@@ -60,7 +60,7 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
 
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
-        .speak(newestEntry)
+        .speak(newestEntry.content)
         .getResponse()
     }
 
@@ -90,8 +90,30 @@ export const RepeatRequestHandler: Alexa.RequestHandler = {
     const entries = await getAllEntry()
     const datasources = buildDataSources(entries)
     const document = buildAplDocument()
+    const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
+      type: 'SpeakItem',
+      componentId: 'dreamTextComponent'
+    }
+
+    if (!supportDisplay(handlerInput)) {
+      return handlerInput.responseBuilder
+        .speak(''.concat(...entries.map(el => el.content)))
+        .getResponse()
+    }
+
     return handlerInput.responseBuilder
-      .speak('test')
+      .addDirective({
+        type: 'Alexa.Presentation.APL.RenderDocument',
+        token: 'repeat',
+        document: document,
+        datasources: datasources
+      })
+      .addDirective({
+        type: 'Alexa.Presentation.APL.ExecuteCommands',
+        token: 'repeat',
+        commands: [command]
+      })
+      .withShouldEndSession(true)
       .getResponse()
   }
 }
@@ -283,7 +305,7 @@ interface ITransformer {
   transformer: string
 }
 
-const buildDataSources = (entry: string): IDatasourceWraper => {
+const buildDataSources = (entries: IEntry[]): IDatasourceWraper => {
   const datasources: IDatasourceWraper = {
     data: {
       type: "object",
@@ -295,8 +317,9 @@ const buildDataSources = (entry: string): IDatasourceWraper => {
   }
 
   const inputPath = 'dreamSsml'
-  datasources.data.entry = entry
-  datasources.data.properties[inputPath] = `<speak>${entry}</speak>`
+  const entryesPackage = ''.concat(...entries.map(el => el.content))
+  datasources.data.entry = entryesPackage
+  datasources.data.properties[inputPath] = `<speak>${entryesPackage}</speak>`
   datasources.data.transformers.push(
     {
       inputPath: inputPath,
