@@ -117,6 +117,19 @@ export const RepeatRequestHandler: Alexa.RequestHandler = {
   }
 }
 
+export const RecordRequestHandler: Alexa.RequestHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    return request.type === 'IntentRequest' && request.intent.name === 'RecordIntent'
+  },
+  handle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    const dreamSlot = request.type === 'IntentRequest' && request.intent.slots && request.intent.slots.dream.value
+    return handlerInput.responseBuilder
+      .speak(`${dreamSlot}を記録しました`)
+      .getResponse()
+  }
+}
 export const HelpHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
