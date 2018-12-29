@@ -153,9 +153,8 @@ interface IEntry {
   publishedAt: Date
 }
 
-const getNewestEntry = (): Promise<string> => {
+const getNewestEntry = async (): Promise<IEntry> => {
   const docClient = new AWS.DynamoDB.DocumentClient(AWS_CONFIG)
-
   const params = {
     TableName: 'Entries',
     ExpressionAttributeNames: {
@@ -171,15 +170,8 @@ const getNewestEntry = (): Promise<string> => {
     ScanIndexForward: false
   }
 
-  return new Promise(resolve => {
-    docClient.query(params, (err, data) => {
-      if (err) {
-        console.log("ERROR:", JSON.stringify(err))
-      } else {
-        resolve(data.Items[0].content)
-      }
-    })
-  })
+  const res = await docClient.query(params).promise()
+  return EntryConverter(res.Items[0])
 }
 
 const getAllEntry = async (): Promise<IEntry[]> => {
