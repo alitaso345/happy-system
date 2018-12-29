@@ -19,9 +19,8 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
     const document = buildAplDocument()
     const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
       type: 'SpeakItem',
-      componentId: 'dreamTextComponent'
+      componentId: `${newestEntry.publishedAt}`
     }
-
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
         .speak(newestEntry.content)
@@ -56,7 +55,7 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
     const document = buildAplDocument()
     const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
       type: 'SpeakItem',
-      componentId: 'dreamTextComponent'
+      componentId: `${newestEntry.publishedAt}`
     }
 
     if (!supportDisplay(handlerInput)) {
@@ -93,10 +92,7 @@ export const RepeatRequestHandler: Alexa.RequestHandler = {
     const pickupedEntries = shuffle(entries).slice(0, REPEAT_LIMIT)
     const datasources = buildDataSources(pickupedEntries)
     const document = buildAplDocument()
-    const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
-      type: 'SpeakItem',
-      componentId: 'dreamTextComponent'
-    }
+    const commands = buildCommands(pickupedEntries)
 
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
@@ -114,7 +110,7 @@ export const RepeatRequestHandler: Alexa.RequestHandler = {
       .addDirective({
         type: 'Alexa.Presentation.APL.ExecuteCommands',
         token: 'repeat',
-        commands: [command]
+        commands: commands
       })
       .withShouldEndSession(true)
       .getResponse()
@@ -175,7 +171,7 @@ export const ErrorHandler: Alexa.ErrorHandler = {
 interface IEntry {
   title: string
   content: string
-  publishedAt: Date
+  publishedAt: string
 }
 
 const getNewestEntry = async (): Promise<IEntry> => {
@@ -270,15 +266,26 @@ const buildAplDocument = (): IDocument => {
           justifyContent: "center",
           items: [
             {
-              type: "ScrollView",
-              width: "100vw",
-              height: "100vh",
-              item: {
-                type: "Text",
-                id: "dreamTextComponent",
-                text: "${payload.data.properties.dreamContent}",
-                speech: "${payload.data.properties.dreamContentSpeech}"
-              }
+              "type": "Pager",
+              "id": "EntryPager",
+              "width": "100vw",
+              "height": "100vh",
+              "data": "${payload.data.properties.entries}",
+              "item": [
+                {
+                  "type": "Container",
+                  "width": "100vw",
+                  "height": "100vh",
+                  "item": [
+                    {
+                      "type": "Text",
+                      "id": "${data.publishedAt}",
+                      "text": "${data.content}",
+                      "speech": "${data.speech}"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -317,23 +324,37 @@ const buildDataSources = (entries: IEntry[]): IDatasourceWraper => {
     }
   }
 
-  const inputPath = 'dreamSsml'
-  const entryesPackage = ''.concat(...entries.map(el => el.content))
-  datasources.data.properties[inputPath] = `<speak>${entryesPackage}</speak>`
+  datasources.data.properties = { entries: entries }
   datasources.data.transformers.push(
     {
-      inputPath: inputPath,
-      outputName: 'dreamContentSpeech',
+      inputPath: 'entries[*].content',
+      outputName: 'speech',
       transformer: 'ssmlToSpeech'
-    },
-    {
-      inputPath: inputPath,
-      outputName: 'dreamContent',
-      transformer: 'ssmlToText'
     }
   )
 
   return datasources
+}
+
+const buildCommands = (entries: IEntry[]): interfaces.alexa.presentation.apl.Command[] => {
+  const commands = []
+  entries.forEach(entry => {
+    // 日記の音読とページ送りを繰り返す
+    commands.push(
+      {
+        type: 'SpeakItem',
+        componentId: entry.publishedAt
+      },
+      {
+        type: "SetPage",
+        componentId: "EntryPager",
+        position: "relative",
+        value: 1
+      }
+    )
+  })
+
+  return commands
 }
 
 const supportDisplay = (handlerInput: Alexa.HandlerInput): interfaces.display.DisplayInterface => {
@@ -351,7 +372,7 @@ const supportDisplay = (handlerInput: Alexa.HandlerInput): interfaces.display.Di
 const EntryConverter = (res): IEntry => ({
   title: res.title,
   content: res.content,
-  publishedAt: new Date(res.publishedAt)
+  publishedAt: res.publishedAt
 })
 
 function shuffle<T>(array: T[]): T[] {

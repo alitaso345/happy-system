@@ -33,7 +33,7 @@
             "codeUri": "lambda/custom",
             "functionName": "yumenikki2",
             "handler": "index.handler",
-            "revisionId": "97f2e518-4864-4416-ad60-9ffe1454ce7b",
+            "revisionId": "ff142dec-11bf-4b18-b628-6c5133c27cf8",
             "runtime": "nodejs8.10"
           }
         ]
