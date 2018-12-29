@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk'
 import * as Alexa from 'ask-sdk-core'
 import { interfaces } from 'ask-sdk-model';
 
+const AWS_CONFIG = { region: 'ap-northeast-1' }
 const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
 const HELP_REPROMPT = 'ご用件はなんでしょうか？'
 const EXIT_MESSAGE = '<say-as interpret-as="interjection">おやすみなさい。良い夢を。</say-as>'
@@ -80,6 +81,21 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
   }
 }
 
+export const RepeatRequestHandler: Alexa.RequestHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    return request.type === 'IntentRequest' && request.intent.name === 'RepeatIntent'
+  },
+  async handle(handlerInput) {
+    const entries = await getAllEntry()
+    const datasources = buildDataSources(entries)
+    const document = buildAplDocument()
+    return handlerInput.responseBuilder
+      .speak('test')
+      .getResponse()
+  }
+}
+
 export const HelpHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
@@ -131,8 +147,14 @@ export const ErrorHandler: Alexa.ErrorHandler = {
   }
 }
 
+interface IEntry {
+  title: string
+  content: string
+  publishedAt: Date
+}
+
 const getNewestEntry = (): Promise<string> => {
-  const docClient = new AWS.DynamoDB.DocumentClient({ region: 'ap-northeast-1' })
+  const docClient = new AWS.DynamoDB.DocumentClient(AWS_CONFIG)
 
   const params = {
     TableName: 'Entries',
@@ -152,12 +174,21 @@ const getNewestEntry = (): Promise<string> => {
   return new Promise(resolve => {
     docClient.query(params, (err, data) => {
       if (err) {
-        console.log("ERROR:", JSON.stringify(data))
+        console.log("ERROR:", JSON.stringify(err))
       } else {
         resolve(data.Items[0].content)
       }
     })
   })
+}
+
+const getAllEntry = async (): Promise<IEntry[]> => {
+  const docClient = new AWS.DynamoDB.DocumentClient(AWS_CONFIG)
+  const params = {
+    TableName: 'Entries'
+  }
+  const res = await docClient.scan(params).promise()
+  return res.Items.map(EntryConverter)
 }
 
 interface IDocument {
@@ -301,3 +332,9 @@ const supportDisplay = (handlerInput: Alexa.HandlerInput): interfaces.display.Di
 
   return hasDisplay
 }
+
+const EntryConverter = (res): IEntry => ({
+  title: res.title,
+  content: res.content,
+  publishedAt: new Date(res.publishedAt)
+})
