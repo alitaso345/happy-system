@@ -3,6 +3,7 @@ import * as Alexa from 'ask-sdk-core'
 import { interfaces } from 'ask-sdk-model';
 
 const AWS_CONFIG = { region: 'ap-northeast-1' }
+const REPEAT_LIMIT = 10
 const HELP_MESSAGE = '最新の夢日記をおしえて、と聞いてみてください。最新の内容を取得することができます。'
 const HELP_REPROMPT = 'ご用件はなんでしょうか？'
 const EXIT_MESSAGE = '<say-as interpret-as="interjection">おやすみなさい。良い夢を。</say-as>'
@@ -87,8 +88,10 @@ export const RepeatRequestHandler: Alexa.RequestHandler = {
     return request.type === 'IntentRequest' && request.intent.name === 'RepeatIntent'
   },
   async handle(handlerInput) {
+    // 長過ぎる文章を読ませようとするとAlexaが読み上げられないので、適当な数にしとく
     const entries = await getAllEntry()
-    const datasources = buildDataSources(entries)
+    const pickupedEntries = shuffle(entries).slice(0, REPEAT_LIMIT)
+    const datasources = buildDataSources(pickupedEntries)
     const document = buildAplDocument()
     const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
       type: 'SpeakItem',
@@ -350,3 +353,16 @@ const EntryConverter = (res): IEntry => ({
   content: res.content,
   publishedAt: new Date(res.publishedAt)
 })
+
+function shuffle<T>(array: T[]): T[] {
+  if (array.length <= 1) return array
+
+  for (let i = array.length - 1; i > 0; i--) {
+    const randomChoiceIndex = Math.floor(Math.random() * (i + 1))
+    const tmp = array[i]
+    array[i] = array[randomChoiceIndex]
+    array[randomChoiceIndex] = tmp
+  }
+
+  return array
+}
