@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk'
 import * as Alexa from 'ask-sdk-core'
+import axios from 'axios'
 import { interfaces } from 'ask-sdk-model';
 
 const AWS_CONFIG = { region: 'ap-northeast-1' }
@@ -122,14 +123,28 @@ export const RecordRequestHandler: Alexa.RequestHandler = {
     const request = handlerInput.requestEnvelope.request
     return request.type === 'IntentRequest' && request.intent.name === 'RecordIntent'
   },
-  handle(handlerInput) {
+  async handle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
     const dreamSlot = request.type === 'IntentRequest' && request.intent.slots && request.intent.slots.dream.value
-    return handlerInput.responseBuilder
-      .speak(`${dreamSlot}を記録しました`)
-      .getResponse()
+    const result = await postEntry(dreamSlot)
+
+    if (result) {
+      const message = `${dreamSlot}を記録しました`
+      return handlerInput.responseBuilder
+        .speak(message)
+        .withSimpleCard('夢日記', message)
+        .withShouldEndSession(true)
+        .getResponse()
+    } else {
+      return handlerInput.responseBuilder
+        .speak('記録に失敗しました。再度お試しください')
+        .withShouldEndSession(true)
+        .getResponse()
+    }
+
   }
 }
+
 export const HelpHandler: Alexa.RequestHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request
@@ -215,6 +230,20 @@ const getAllEntry = async (): Promise<IEntry[]> => {
   }
   const res = await docClient.scan(params).promise()
   return res.Items.map(EntryConverter)
+}
+
+const postEntry = async (content: string): Promise<boolean> => {
+  const client = axios.create({
+    baseURL: 'https://blog.hatena.ne.jp/alice345/alitaso345.hatenadiary.jp/atom/entry',
+    auth: {
+      username: process.env['HATENA_ID'],
+      password: process.env['HATENA_API_KEY']
+    }
+  })
+  const body = `<?xml version="1.0" encoding="utf-8"?><entry xmlns="http://www.w3.org/2005/Atom" xmlns:app="http://www.w3.org/2007/app"><title>夢みた</title><content type="text/plain">${content}</content><category term="夢日記" /></entry>`
+  return client.request({ method: 'POST', data: body })
+    .then(() => { return true })
+    .catch(() => { return false })
 }
 
 interface IDocument {
