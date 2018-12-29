@@ -81,6 +81,23 @@
             "リピートして",
             "無限に繰り返して"
           ]
+        },
+        {
+          "name": "RecordIntent",
+          "slots": [
+            {
+              "name": "dream",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "{dream} を記録して",
+            "{dream} を記憶",
+            "{dream} を見た",
+            "{dream} をみた",
+            "{dream} をメモ",
+            "{dream} を記録"
+          ]
         }
       ],
       "types": []
