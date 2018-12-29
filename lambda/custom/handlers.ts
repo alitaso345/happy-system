@@ -15,32 +15,12 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
     return request.type === 'LaunchRequest'
   },
   async handle(handlerInput) {
-    const newestEntry = await getNewestEntry()
-    const datasources = buildDataSources([newestEntry])
-    const document = buildAplDocument()
-    const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
-      type: 'SpeakItem',
-      componentId: `${newestEntry.publishedAt}`
-    }
-    if (!supportDisplay(handlerInput)) {
-      return handlerInput.responseBuilder
-        .speak(newestEntry.content)
-        .getResponse()
-    }
-
+    const message = '最新の夢を読み上げますか？それともランダムに読み上げますか？'
     return handlerInput.responseBuilder
-      .addDirective({
-        type: 'Alexa.Presentation.APL.RenderDocument',
-        token: 'happy',
-        document: document,
-        datasources: datasources
-      })
-      .addDirective({
-        type: 'Alexa.Presentation.APL.ExecuteCommands',
-        token: 'happy',
-        commands: [command]
-      })
-      .withShouldEndSession(true)
+      .speak(message)
+      .reprompt(message)
+      .withSimpleCard('夢日記', message)
+      .withShouldEndSession(false)
       .getResponse()
   }
 }
@@ -62,6 +42,7 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
         .speak(newestEntry.content)
+        .withSimpleCard('夢日記', newestEntry.content)
         .getResponse()
     }
 
