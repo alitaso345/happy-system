@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk'
 import * as Alexa from 'ask-sdk-core'
+import axios from 'axios'
 import { interfaces } from 'ask-sdk-model';
 
 const AWS_CONFIG = { region: 'ap-northeast-1' }
@@ -14,32 +15,12 @@ export const LaunchRequestHandler: Alexa.RequestHandler = {
     return request.type === 'LaunchRequest'
   },
   async handle(handlerInput) {
-    const newestEntry = await getNewestEntry()
-    const datasources = buildDataSources([newestEntry])
-    const document = buildAplDocument()
-    const command: interfaces.alexa.presentation.apl.SpeakItemCommand = {
-      type: 'SpeakItem',
-      componentId: `${newestEntry.publishedAt}`
-    }
-    if (!supportDisplay(handlerInput)) {
-      return handlerInput.responseBuilder
-        .speak(newestEntry.content)
-        .getResponse()
-    }
-
+    const message = '最新の夢を読み上げますか？それともランダムに読み上げますか？'
     return handlerInput.responseBuilder
-      .addDirective({
-        type: 'Alexa.Presentation.APL.RenderDocument',
-        token: 'happy',
-        document: document,
-        datasources: datasources
-      })
-      .addDirective({
-        type: 'Alexa.Presentation.APL.ExecuteCommands',
-        token: 'happy',
-        commands: [command]
-      })
-      .withShouldEndSession(true)
+      .speak(message)
+      .reprompt(message)
+      .withSimpleCard('夢日記', message)
+      .withShouldEndSession(false)
       .getResponse()
   }
 }
@@ -61,6 +42,7 @@ export const NewestDreamRequestHandler: Alexa.RequestHandler = {
     if (!supportDisplay(handlerInput)) {
       return handlerInput.responseBuilder
         .speak(newestEntry.content)
+        .withSimpleCard('夢日記', newestEntry.content)
         .getResponse()
     }
 
@@ -114,6 +96,33 @@ export const RepeatRequestHandler: Alexa.RequestHandler = {
       })
       .withShouldEndSession(true)
       .getResponse()
+  }
+}
+
+export const RecordRequestHandler: Alexa.RequestHandler = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    return request.type === 'IntentRequest' && request.intent.name === 'RecordIntent'
+  },
+  async handle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request
+    const dreamSlot = request.type === 'IntentRequest' && request.intent.slots && request.intent.slots.dream.value
+    const result = await postEntry(dreamSlot)
+
+    if (result) {
+      const message = `${dreamSlot}を記録しました`
+      return handlerInput.responseBuilder
+        .speak(message)
+        .withSimpleCard('夢日記', message)
+        .withShouldEndSession(true)
+        .getResponse()
+    } else {
+      return handlerInput.responseBuilder
+        .speak('記録に失敗しました。再度お試しください')
+        .withShouldEndSession(true)
+        .getResponse()
+    }
+
   }
 }
 
@@ -204,6 +213,20 @@ const getAllEntry = async (): Promise<IEntry[]> => {
   return res.Items.map(EntryConverter)
 }
 
+const postEntry = async (content: string): Promise<boolean> => {
+  const client = axios.create({
+    baseURL: 'https://blog.hatena.ne.jp/alice345/alitaso345.hatenadiary.jp/atom/entry',
+    auth: {
+      username: process.env['HATENA_ID'],
+      password: process.env['HATENA_API_KEY']
+    }
+  })
+  const body = `<?xml version="1.0" encoding="utf-8"?><entry xmlns="http://www.w3.org/2005/Atom" xmlns:app="http://www.w3.org/2007/app"><title>夢みた</title><content type="text/plain">${content}</content><category term="夢日記" /></entry>`
+  return client.request({ method: 'POST', data: body })
+    .then(() => { return true })
+    .catch(() => { return false })
+}
+
 interface IDocument {
   description?: string
   import?: object
@@ -244,15 +267,26 @@ const buildAplDocument = (): IDocument => {
           justifyContent: "center",
           items: [
             {
-              type: "ScrollView",
-              width: "70vw",
-              height: "70vh",
-              item: {
-                type: "Text",
-                id: "dreamTextComponent",
-                text: "${payload.data.properties.dreamContent}",
-                speech: "${payload.data.properties.dreamContentSpeech}"
-              }
+              "type": "Pager",
+              "id": "EntryPager",
+              "width": "70vw",
+              "height": "70vh",
+              "data": "${payload.data.properties.entries}",
+              "item": [
+                {
+                  "type": "Container",
+                  "width": "100vw",
+                  "height": "100vh",
+                  "item": [
+                    {
+                      "type": "Text",
+                      "id": "${data.publishedAt}",
+                      "text": "${data.content}",
+                      "speech": "${data.speech}"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
